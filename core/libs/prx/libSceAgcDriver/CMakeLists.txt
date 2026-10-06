@@ -864,4 +864,12 @@ if(BUILD_TESTING)
         set_tests_properties(image_msaa_load PROPERTIES ENVIRONMENT_MODIFICATION
             "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
     endif()
+    add_test_executable(ds_ordered_count_tests ${LIBS_INCLUDE_DIR}/tests/DsOrderedCount.cpp)
+    target_link_libraries(ds_ordered_count_tests PRIVATE shader_recompiler_agc_driver libc)
+    configure_windows_unwind(ds_ordered_count_tests)
+    add_test(NAME ds_ordered_count COMMAND ds_ordered_count_tests)
+    if(WIN32)
+        set_tests_properties(ds_ordered_count PROPERTIES ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
+    endif()
 endif()

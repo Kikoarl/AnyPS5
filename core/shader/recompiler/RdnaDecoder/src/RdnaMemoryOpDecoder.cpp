@@ -316,6 +316,7 @@ constexpr MemoryOpcodeInfo dsOpcodes[] = {
     {0x3cu, RdnaOpcode::DsReadU16, 1, 16, false, false, false},
     {0x3du, RdnaOpcode::DsConsume, 1, 32, false, false, false},
     {0x3eu, RdnaOpcode::DsAppend, 1, 32, false, false, false},
+    {0x3fu, RdnaOpcode::DsOrderedCount, 1, 32, false, false, false},
     {0x4du, RdnaOpcode::DsWriteB64, 2, 32, false, false, false},
     {0x4eu, RdnaOpcode::DsWrite2B64, 4, 32, false, false, false},
     {0x4fu, RdnaOpcode::DsWrite2st64B64, 4, 32, false, false, false},
@@ -916,6 +917,12 @@ RdnaInstruction DecodeRdnaDs(std::uint32_t programCounter, std::span<const std::
     }
     if (info.opcode == RdnaOpcode::DsReadAddtidB32 && (data0 != 0u || data1 != 0u)) {
         throw std::runtime_error("DS read addtid data operands are not supported");
+    }
+    if (info.opcode == RdnaOpcode::DsOrderedCount && !gds) {
+        throw std::runtime_error("DS ordered count is available only for GDS");
+    }
+    if (info.opcode == RdnaOpcode::DsOrderedCount && (data0 != 0u || data1 != 0u)) {
+        throw std::runtime_error("DS ordered count data operands are not supported");
     }
 
     RdnaInstruction instruction{};

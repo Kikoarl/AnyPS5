@@ -867,6 +867,7 @@ enum class RdnaOpcode : std::uint16_t {
     DsPermuteB32,
     DsConsume,
     DsAppend,
+    DsOrderedCount,
     DsReadI8,
     DsReadU8,
     DsReadI16,

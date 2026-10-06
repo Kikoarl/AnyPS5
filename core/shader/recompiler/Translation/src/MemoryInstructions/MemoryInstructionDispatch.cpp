@@ -443,6 +443,8 @@ bool TranslationContext::emitMemory(const RdnaInstruction& inst) {
         return dsAppendConsume(inst, IrOpcode::DataConsume);
     case RdnaOpcode::DsAppend:
         return dsAppendConsume(inst, IrOpcode::DataAppend);
+    case RdnaOpcode::DsOrderedCount:
+        throw std::runtime_error("DS ordered count translation is not supported");
     case RdnaOpcode::DsWriteAddtidB32:
         return dsAddtid(inst, true);
     case RdnaOpcode::DsReadAddtidB32:
