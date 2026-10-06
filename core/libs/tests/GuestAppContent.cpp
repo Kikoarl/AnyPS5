@@ -5,6 +5,7 @@
 #include <fstream>
 
 extern "C" {
+int APS5_VABI sceAppContentAddcontEnqueueDownload(uint32_t, const NpUnifiedEntitlementLabel*);
 int APS5_VABI sceAppContentAddcontMount(uint32_t, const NpUnifiedEntitlementLabel*, AppContentMountPoint*);
 int APS5_VABI sceAppContentAddcontUnmount(const AppContentMountPoint*);
 int APS5_VABI sceAppContentGetAddcontInfo(uint32_t, const NpUnifiedEntitlementLabel*, void*);
@@ -43,7 +44,6 @@ int main() {
     std::memcpy(mountPoint.data, "/addcont0", 10);
     Require(sceAppContentAddcontUnmount(&mountPoint) == ErrorNotFound);
     Require(sceAppContentAddcontUnmount(nullptr) == ErrorParameter);
-
     unsigned char info[24];
     std::memset(info, 0x5a, sizeof(info));
     unsigned char untouchedInfo[24];
@@ -70,4 +70,7 @@ int main() {
     Require(sceAppContentGetAddcontInfoList(0, nullptr, 0, nullptr) == ErrorParameter);
     Require(sceAppContentGetAddcontInfoList(0, info, 0, nullptr) == ErrorParameter);
     Require(sceAppContentGetAddcontInfoList(0, nullptr, 1, nullptr) == ErrorParameter);
+
+    Require(sceAppContentAddcontEnqueueDownload(0, &label) == ErrorNotFound);
+    Require(sceAppContentAddcontEnqueueDownload(0, nullptr) == ErrorParameter);
 }

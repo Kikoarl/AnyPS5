@@ -122,9 +122,9 @@ int APS5_VABI sceAppContentTemporaryDataMount2(uint32_t option, AppContentMountP
 }
 
 
-APS5_EXPORT("7gxh+5QubhY", sceAppContentUnknown00);
-int APS5_VABI sceAppContentUnknown00(void) {
-    NotImplemented_nid_no_patch("7gxh+5QubhY");
-    return 0;
+int APS5_VABI sceAppContentAddcontEnqueueDownload(uint32_t service_label, const NpUnifiedEntitlementLabel* entitlement_label) {
+    (void)service_label;
+    if (!entitlement_label) return SCE_APP_CONTENT_ERROR_PARAMETER;
+    return SCE_APP_CONTENT_ERROR_NOT_FOUND;
 }
 }
