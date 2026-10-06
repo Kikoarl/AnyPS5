@@ -39,6 +39,8 @@ RdnaOpcode decodeSop1Opcode(std::uint32_t opcode) {
         case 0x1eu: return RdnaOpcode::SBitset1B64;
         case 0x1fu: return RdnaOpcode::SGetpcB64;
         case 0x20u: return RdnaOpcode::SSetpcB64;
+        case 0x21u: return RdnaOpcode::SSwappcB64;
+        case 0x22u: return RdnaOpcode::SRfeB64;
         case 0x24u: return RdnaOpcode::SAndSaveexecB64;
         case 0x25u: return RdnaOpcode::SOrSaveexecB64;
         case 0x26u: return RdnaOpcode::SXorSaveexecB64;
@@ -285,7 +287,8 @@ std::uint32_t scalarDestinationDwordCount(RdnaOpcode opcode) {
         case RdnaOpcode::SLshlB64:
         case RdnaOpcode::SLshrB64:
         case RdnaOpcode::SBfmB64:
-        case RdnaOpcode::SBfeU64: return 2u;
+        case RdnaOpcode::SBfeU64:
+        case RdnaOpcode::SSwappcB64: return 2u;
         default: return 1u;
     }
 }
@@ -340,7 +343,7 @@ RdnaInstruction DecodeRdnaSop1(std::uint32_t programCounter, std::span<const std
         instruction.destination = DecodeRdnaScalarDestination(scalarDestination, programCounter);
         return instruction;
     }
-    if (instruction.op == RdnaOpcode::SSetpcB64) {
+    if (instruction.op == RdnaOpcode::SSetpcB64 || instruction.op == RdnaOpcode::SRfeB64) {
         instruction.sourceCount = 1;
         instruction.destination.kind = RdnaOperandKind::Null;
         instruction.source0 = DecodeRdnaScalarSource(scalarSource0, programCounter);

@@ -322,7 +322,7 @@ bool writesScalar(const RdnaInstruction& instruction, std::uint32_t index) {
 bool findLastWriter(const RdnaProgram& program, std::uint32_t end, std::initializer_list<std::uint32_t> indices, std::uint32_t& writer) {
     for (auto position = end; position-- > 0u;) {
         const auto& instruction = program.instructions[position];
-        if (IsDirectBranchOpcode(instruction.op) || instruction.op == RdnaOpcode::SSetpcB64 || instruction.op == RdnaOpcode::SEndpgm) return false;
+        if (IsDirectBranchOpcode(instruction.op) || instruction.op == RdnaOpcode::SSetpcB64 || instruction.op == RdnaOpcode::SEndpgm || instruction.op == RdnaOpcode::SRfeB64 || instruction.op == RdnaOpcode::SSwappcB64) return false;
         if (std::ranges::any_of(indices, [&](std::uint32_t index) { return writesScalar(instruction, index); })) {
             writer = position;
             return true;
@@ -522,6 +522,10 @@ std::vector<BasicBlock> GraphBuilder::splitIntoBlocks(const RdnaProgram& program
             }
         } else if (instruction.op == RdnaOpcode::SEndpgm) {
             labels.insert(nextProgramCounter);
+        } else if (instruction.op == RdnaOpcode::SSwappcB64) {
+            throw std::invalid_argument("unsupported dynamic s_swappc_b64 at program counter " + toHexString(instruction.programCounter));
+        } else if (instruction.op == RdnaOpcode::SRfeB64) {
+            throw std::invalid_argument("unsupported dynamic s_rfe_b64 at program counter " + toHexString(instruction.programCounter));
         }
     }
 
