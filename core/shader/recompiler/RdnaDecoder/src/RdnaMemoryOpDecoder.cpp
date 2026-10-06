@@ -322,6 +322,7 @@ constexpr MemoryOpcodeInfo dsOpcodes[] = {
     {0x76u, RdnaOpcode::DsReadB64, 2, 32, false, false, false},
     {0x77u, RdnaOpcode::DsRead2B64, 4, 32, false, false, false},
     {0x78u, RdnaOpcode::DsRead2st64B64, 4, 32, false, false, false},
+    {0x98u, RdnaOpcode::DsGwsSemaReleaseAll, 1, 32, false, false, false},
     {0xa0u, RdnaOpcode::DsWriteB8D16Hi, 1, 8, false, false, false},
     {0xa1u, RdnaOpcode::DsWriteB16D16Hi, 1, 16, false, false, false},
     {0xa2u, RdnaOpcode::DsReadU8D16, 1, 8, false, false, false},
@@ -559,7 +560,8 @@ std::uint32_t dsSourceCount(RdnaOpcode opcode) {
         case RdnaOpcode::DsBpermuteB32: return 2u;
         case RdnaOpcode::DsReadAddtidB32:
         case RdnaOpcode::DsConsume:
-        case RdnaOpcode::DsAppend: return 0u;
+        case RdnaOpcode::DsAppend:
+        case RdnaOpcode::DsGwsSemaReleaseAll: return 0u;
         default: return isDsWriteOpcode(opcode) || isDsAtomicOpcode(opcode) ? 2u : 1u;
     }
 }
@@ -916,6 +918,12 @@ RdnaInstruction DecodeRdnaDs(std::uint32_t programCounter, std::span<const std::
     }
     if (info.opcode == RdnaOpcode::DsReadAddtidB32 && (data0 != 0u || data1 != 0u)) {
         throw std::runtime_error("DS read addtid data operands are not supported");
+    }
+    if (info.opcode == RdnaOpcode::DsGwsSemaReleaseAll && !gds) {
+        throw std::runtime_error("DS GWS semaphore release all is available only for GDS");
+    }
+    if (info.opcode == RdnaOpcode::DsGwsSemaReleaseAll && (addr != 0u || data0 != 0u || data1 != 0u || vdst != 0u)) {
+        throw std::runtime_error("DS GWS semaphore release all register operands are not supported");
     }
 
     RdnaInstruction instruction{};
