@@ -864,4 +864,13 @@ if(BUILD_TESTING)
         set_tests_properties(image_msaa_load PROPERTIES ENVIRONMENT_MODIFICATION
             "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
     endif()
+
+    add_test_executable(ds_condxchg32_rtn_b64_tests ${LIBS_INCLUDE_DIR}/tests/DsCondxchg32RtnB64.cpp)
+    target_link_libraries(ds_condxchg32_rtn_b64_tests PRIVATE shader_recompiler_agc_driver libc)
+    configure_windows_unwind(ds_condxchg32_rtn_b64_tests)
+    add_test(NAME ds_condxchg32_rtn_b64 COMMAND ds_condxchg32_rtn_b64_tests)
+    if(WIN32)
+        set_tests_properties(ds_condxchg32_rtn_b64 PROPERTIES ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
+    endif()
 endif()

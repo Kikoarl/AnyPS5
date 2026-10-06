@@ -277,6 +277,7 @@ constexpr MemoryOpcodeInfo dsOpcodes[] = {
     {0x71u, RdnaOpcode::DsCmpstRtnF64, 2, 32, false, false, false},
     {0x72u, RdnaOpcode::DsMinRtnF64, 2, 32, false, false, false},
     {0x73u, RdnaOpcode::DsMaxRtnF64, 2, 32, false, false, false},
+    {0x7eu, RdnaOpcode::DsCondxchg32RtnB64, 2, 32, false, false, false},
     {0x01u, RdnaOpcode::DsSubU32, 1, 32, false, false, false},
     {0x05u, RdnaOpcode::DsMinI32, 1, 32, false, false, false},
     {0x06u, RdnaOpcode::DsMaxI32, 1, 32, false, false, false},
@@ -526,6 +527,7 @@ bool isDsAtomicOpcode(RdnaOpcode opcode) {
         case RdnaOpcode::DsWrxchgRtnB64:
         case RdnaOpcode::DsMinRtnF64:
         case RdnaOpcode::DsMaxRtnF64:
+        case RdnaOpcode::DsCondxchg32RtnB64:
             return true;
         default: return false;
     }
@@ -551,7 +553,8 @@ std::uint32_t dsSourceCount(RdnaOpcode opcode) {
         case RdnaOpcode::DsCmpstF64:
         case RdnaOpcode::DsMskorRtnB64:
         case RdnaOpcode::DsCmpstRtnB64:
-        case RdnaOpcode::DsCmpstRtnF64: return 3u;
+        case RdnaOpcode::DsCmpstRtnF64:
+        case RdnaOpcode::DsCondxchg32RtnB64: return 3u;
         case RdnaOpcode::DsMinF32:
         case RdnaOpcode::DsMaxF32: return 2u;
         case RdnaOpcode::DsNop: return 0u;
