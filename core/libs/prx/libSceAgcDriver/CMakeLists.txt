@@ -864,4 +864,13 @@ if(BUILD_TESTING)
         set_tests_properties(image_msaa_load PROPERTIES ENVIRONMENT_MODIFICATION
             "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
     endif()
+
+    add_test_executable(ds_gws_init_tests ${LIBS_INCLUDE_DIR}/tests/DsGwsInit.cpp)
+    target_link_libraries(ds_gws_init_tests PRIVATE shader_recompiler_agc_driver libc)
+    configure_windows_unwind(ds_gws_init_tests)
+    add_test(NAME ds_gws_init COMMAND ds_gws_init_tests)
+    if(WIN32)
+        set_tests_properties(ds_gws_init PROPERTIES ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
+    endif()
 endif()

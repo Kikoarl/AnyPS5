@@ -322,6 +322,7 @@ constexpr MemoryOpcodeInfo dsOpcodes[] = {
     {0x76u, RdnaOpcode::DsReadB64, 2, 32, false, false, false},
     {0x77u, RdnaOpcode::DsRead2B64, 4, 32, false, false, false},
     {0x78u, RdnaOpcode::DsRead2st64B64, 4, 32, false, false, false},
+    {0x99u, RdnaOpcode::DsGwsInit, 1, 32, false, false, false},
     {0xa0u, RdnaOpcode::DsWriteB8D16Hi, 1, 8, false, false, false},
     {0xa1u, RdnaOpcode::DsWriteB16D16Hi, 1, 16, false, false, false},
     {0xa2u, RdnaOpcode::DsReadU8D16, 1, 8, false, false, false},
@@ -916,6 +917,12 @@ RdnaInstruction DecodeRdnaDs(std::uint32_t programCounter, std::span<const std::
     }
     if (info.opcode == RdnaOpcode::DsReadAddtidB32 && (data0 != 0u || data1 != 0u)) {
         throw std::runtime_error("DS read addtid data operands are not supported");
+    }
+    if (info.opcode == RdnaOpcode::DsGwsInit && !gds) {
+        throw std::runtime_error("DS GWS init is available only for GDS");
+    }
+    if (info.opcode == RdnaOpcode::DsGwsInit && (addr != 0u || data1 != 0u || vdst != 0u)) {
+        throw std::runtime_error("DS GWS init register operands are not supported");
     }
 
     RdnaInstruction instruction{};
