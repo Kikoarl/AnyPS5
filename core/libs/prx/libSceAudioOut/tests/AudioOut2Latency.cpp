@@ -9,6 +9,7 @@ extern "C" {
 int APS5_VABI sceAudioOut2Initialize();
 int APS5_VABI sceAudioOut2Set3DLatency(int, std::uint32_t);
 int APS5_VABI sceAudioOut2MasteringInit(std::uint32_t);
+int APS5_VABI sceAudioOut2MasteringTerm();
 }
 
 static void Require(bool value, const char* message) {
@@ -44,6 +45,7 @@ void TestSet3DLatency() {
 void TestMasteringInit() {
     Require(sceAudioOut2MasteringInit(0) == 0, "flags 0 must be accepted");
     Require(ThrowsRuntimeError([] { sceAudioOut2MasteringInit(1); }), "flags 1 must throw");
+    Require(sceAudioOut2MasteringTerm() == 0, "mastering termination must succeed");
 }
 
 }
