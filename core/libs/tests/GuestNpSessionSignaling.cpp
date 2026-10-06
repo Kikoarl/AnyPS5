@@ -9,6 +9,7 @@ int APS5_VABI sceNpSessionSignalingInitialize(void* param);
 int APS5_VABI sceNpSessionSignalingCreateContext2(const void* param, std::uint32_t* contextId);
 std::int32_t APS5_VABI sceNpSessionSignalingGetLocalNetInfo(std::int32_t contextId, void* info);
 int APS5_VABI sceNpSessionSignalingRequestPrepare(std::uint32_t contextId, std::uint32_t* requestId);
+int APS5_VABI sceNpSessionSignalingGetConnectionStatistics(void);
 int APS5_VABI sceNpSessionSignalingTerminate(void);
 }
 
@@ -46,6 +47,8 @@ int main() {
     Require(sceNpSessionSignalingGetLocalNetInfo(netContextId, nullptr) == InvalidArgument, "null info");
     Require(sceNpSessionSignalingGetLocalNetInfo(netContextId, info) == Unavailable, "local net info without network");
     Require(std::memcmp(info, untouched, sizeof(info)) == 0, "failed query modified the info");
+
+    Require(sceNpSessionSignalingGetConnectionStatistics() == Unavailable, "connection statistics without network");
 
     Require(sceNpSessionSignalingTerminate() == 0, "terminate failed");
 }
