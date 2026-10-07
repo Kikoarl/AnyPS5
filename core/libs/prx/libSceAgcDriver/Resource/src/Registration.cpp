@@ -70,6 +70,15 @@ int APS5_VABI sceAgcDriverGetDefaultOwner(uint32_t* owner_handle) {
     return SCE_AGC_ERROR_RESOURCE_REGISTRATION_UNAVAILABLE;
 }
 
+int APS5_VABI sceAgcDriverRegisterDefaultOwner(uint32_t* owner_handle) {
+    (void)owner_handle;
+    return SCE_AGC_ERROR_RESOURCE_REGISTRATION_UNAVAILABLE;
+}
+
+int APS5_VABI sceAgcDriverRegisterMultipleResources() {
+    return SCE_AGC_ERROR_RESOURCE_REGISTRATION_UNAVAILABLE;
+}
+
 int APS5_VABI sceAgcDriverGetResourceRegistrationMaxNameLength(uint32_t* max_length) {
     if (max_length == nullptr) APS5_INVALID_ARG_EX;
     *max_length = RESOURCE_REGISTRATION_MAX_NAME_LENGTH;

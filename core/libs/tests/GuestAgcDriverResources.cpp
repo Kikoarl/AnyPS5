@@ -12,6 +12,8 @@ int APS5_VABI sceAgcDriverUnregisterAllResourcesForOwner(std::uint32_t);
 int APS5_VABI sceAgcDriverRegisterWorkloadStream(std::uint32_t, const void*);
 int APS5_VABI sceAgcDriverUnregisterWorkloadStream(std::uint32_t);
 int APS5_VABI sceAgcDriverGetDefaultOwner(std::uint32_t*);
+int APS5_VABI sceAgcDriverRegisterDefaultOwner(std::uint32_t*);
+int APS5_VABI sceAgcDriverRegisterMultipleResources(void);
 int APS5_VABI sceAgcDriverGetResourceRegistrationMaxNameLength(std::uint32_t*);
 int APS5_VABI sceAgcDriverGetOwnerName(std::uint32_t, const char**);
 int APS5_VABI sceAgcDriverGetResourceName(std::uint32_t, const char**);
@@ -38,6 +40,8 @@ int main() {
     Require(sceAgcDriverRegisterGdsResource(&resource, owner, 0u, 64u, "gds", 1u, 2u) == Unavailable);
     Require(owner == 7u && resource == 9u);
     Require(sceAgcDriverGetDefaultOwner(&owner) == Unavailable && owner == 7u);
+    Require(sceAgcDriverRegisterDefaultOwner(&owner) == Unavailable && owner == 7u);
+    Require(sceAgcDriverRegisterMultipleResources() == Unavailable);
     std::uint32_t maxNameLength = 8u;
     Require(sceAgcDriverGetResourceRegistrationMaxNameLength(&maxNameLength) == 0 && maxNameLength == 0xfcu);
     const char* name = "unchanged";
