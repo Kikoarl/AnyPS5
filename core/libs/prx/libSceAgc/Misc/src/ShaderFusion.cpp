@@ -316,13 +316,4 @@ int APS5_VABI sceAgcUnknownGetFusedShaderSize(SizeAlign* dst, const Shader* fron
     return 0;
 }
 
-APS5_EXPORT("k0E7vkgqAuE", sceAgcCreateInterpolantMappingVsPs);
-int APS5_VABI sceAgcCreateInterpolantMappingVsPs(ShaderRegister* regs, const Shader* vs, const Shader* ps) {
-    (void)regs;
-    (void)vs;
-    (void)ps;
-    NotImplemented_nid_no_patch(__func__);
-    return 0;
-}
-
 }

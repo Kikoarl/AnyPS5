@@ -10,6 +10,7 @@
 #include <stdexcept>
 
 extern "C" int APS5_VABI sceAgcCreateInterpolantMapping(ShaderRegister* regs, const Shader* gs, const Shader* ps);
+extern "C" int APS5_VABI sceAgcCreateInterpolantMappingVsPs(ShaderRegister* regs, const Shader* vs, const Shader* ps);
 extern "C" int APS5_VABI sceAgcUnknownCreateInterpolantMapping(ShaderRegister* regs, const Shader* gs, const Shader* ps);
 
 namespace {
@@ -55,6 +56,9 @@ void testIdentity() {
     auto regs = filled();
     check(sceAgcUnknownCreateInterpolantMapping(regs.data(), nullptr, nullptr) == 0, "mapping without shaders failed");
     checkIdentity(regs, 0, "mapping without a pixel shader is not the identity");
+    regs = filled();
+    check(sceAgcCreateInterpolantMappingVsPs(regs.data(), nullptr, nullptr) == 0, "vs-ps mapping without shaders failed");
+    checkIdentity(regs, 0, "vs-ps mapping without a pixel shader is not the identity");
     Shader ps{};
     regs = filled();
     check(sceAgcUnknownCreateInterpolantMapping(regs.data(), nullptr, &ps) == 0, "mapping without inputs failed");
@@ -96,6 +100,10 @@ void testMapping() {
     check(sceAgcCreateInterpolantMapping(regular.data(), &gs, &ps) == 0, "mapping failed");
     check(regular[3].value == split[3].value && regular[4].value == split[4].value, "mappings differ outside the high f16 half mode");
     checkIdentity(regular, static_cast<std::uint32_t>(inputs.size()), "unused interpolants are not the identity");
+
+    auto vsps = filled();
+    check(sceAgcCreateInterpolantMappingVsPs(vsps.data(), &gs, &ps) == 0, "vs-ps mapping failed");
+    check(std::memcmp(vsps.data(), regular.data(), sizeof(vsps)) == 0, "vs-ps mapping differs from regular mapping");
 }
 
 void testRejections() {
@@ -108,9 +116,12 @@ void testRejections() {
     std::memset(regs.data(), 0xcc, sizeof(regs));
     const auto saved = regs;
     expectFailure([&] { sceAgcCreateInterpolantMapping(regs.data(), &gs, &ps); });
+    expectFailure([&] { sceAgcCreateInterpolantMappingVsPs(regs.data(), &gs, &ps); });
     expectFailure([&] { sceAgcUnknownCreateInterpolantMapping(regs.data(), &gs, &ps); });
     check(std::memcmp(regs.data(), saved.data(), sizeof(regs)) == 0, "rejected mapping wrote registers");
     ps.num_input_semantics = 1;
+    expectFailure([&] { sceAgcCreateInterpolantMappingVsPs(regs.data(), nullptr, &ps); });
+    expectFailure([&] { sceAgcCreateInterpolantMappingVsPs(nullptr, &gs, &ps); });
     expectFailure([&] { sceAgcUnknownCreateInterpolantMapping(regs.data(), nullptr, &ps); });
     expectFailure([&] { sceAgcUnknownCreateInterpolantMapping(nullptr, &gs, &ps); });
 }
