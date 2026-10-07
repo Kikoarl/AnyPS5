@@ -31,6 +31,7 @@ Throughout the project, every function at every stage either **does exactly what
 
 ### Unknown function info
 
+- [sceAgcDcbPushMarkerSpan, sceAgcDcbSetMarkerSpan, sceAgcAcbPushMarkerSpan, sceAgcAcbSetMarkerSpan](../../core/libs/prx/libSceAgc/DcbState/src/Marker.cpp) (libSceAgc) - signatures `(cb, marker, length, color)` follow [OpenAGC](https://github.com/OpenAGC/OpenAGC/blob/main/include/agcdriver.h); emits the custom NOP marker packet with an explicit string length; color is ignored as colors are only consumed by external capture tools and not encoded in the command stream
 - PPSA01341 imports declared without parameters, signatures unknown: [sceAgcSetSemaphoreMemory](../../core/libs/prx/libSceAgc/Unimplemented.cpp), [sceAgcDriverRegisterMultipleResources](../../core/libs/prx/libSceAgcDriver/Unimplemented.cpp). Names from the shadPS4 aerolib NID list
 - [7CxI50-xlCk, pMxXhNozUX8](../../core/libs/prx/libSceNpPartner001/Export.cpp) (libSceNpPartner001) - unknown names and signatures, imported by PPSA23566; declared without parameters
 - [sceAgcWaitRegMemPatchMask](../../core/libs/prx/libSceAgc/Patch/src/WaitRegMem.cpp) (libSceAgc) - follows `sceAgcWaitRegMemPatchReference`: the mask is taken as a 32-bit value and written to the low mask word of a 32- or 64-bit wait, as [OpenAGC](https://github.com/OpenAGC/OpenAGC/blob/main/src/game_compat.c) does; [sharpemu](https://github.com/sharpemu/sharpemu/blob/main/src/SharpEmu.Libs/Agc/AgcExports.PacketPatching.cs) writes both words of a 64-bit wait's mask. A mask above 32 bits throws
