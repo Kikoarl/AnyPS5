@@ -405,6 +405,8 @@ bool TranslationContext::emitScalar(const RdnaInstruction& inst) {
     case RdnaOpcode::SIcacheInv:
     case RdnaOpcode::SIncperflevel:
     case RdnaOpcode::SDecperflevel:
+    case RdnaOpcode::SSethalt:
+    case RdnaOpcode::SCodeEnd:
         emitControlNop();
         return true;
     case RdnaOpcode::SRoundMode:
@@ -423,6 +425,7 @@ bool TranslationContext::emitScalar(const RdnaInstruction& inst) {
         sBarrier();
         return true;
     case RdnaOpcode::SSendmsg:
+    case RdnaOpcode::SSendmsghalt:
         sSendmsg(inst);
         return true;
     case RdnaOpcode::STtracedata:
