@@ -9,6 +9,7 @@
 
 extern "C" std::uint64_t APS5_VABI sceAgcDcbContextStateOpGetSize(std::uint32_t operation);
 extern "C" std::uint32_t* APS5_VABI sceAgcDcbContextStateAnotherOp(CommandBuffer* buf, std::uint32_t operation);
+extern "C" std::uint32_t* APS5_VABI sceAgcDcbContextStateOp(CommandBuffer* buf, std::uint32_t operation);
 
 namespace {
 
@@ -37,12 +38,25 @@ void testSizes() {
         check(sceAgcDcbContextStateAnotherOp(&buffer, operation) == words.data(), "context state op did not start at the cursor");
         const auto written = static_cast<std::uint64_t>(buffer.cursor_up - words.data()) * sizeof(std::uint32_t);
         check(written == sizes[operation], "context state size differs from the written packets");
+        std::array<std::uint32_t, 64> opWords{};
+        CommandBuffer opBuffer{opWords.data(), opWords.data() + opWords.size(), opWords.data(), opWords.data() + opWords.size(),
+                              nullptr, nullptr, 0};
+        check(sceAgcDcbContextStateOp(&opBuffer, operation) == opWords.data(), "context state op did not start at the cursor");
+        const auto opWritten = static_cast<std::uint64_t>(opBuffer.cursor_up - opWords.data()) * sizeof(std::uint32_t);
+        check(opWritten == sizes[operation], "context state op size differs from the written packets");
+        check(opWords == words, "sceAgcDcbContextStateOp and sceAgcDcbContextStateAnotherOp produced different packets");
     }
 }
 
 void testRejections() {
     expectFailure([] { sceAgcDcbContextStateOpGetSize(4); });
     expectFailure([] { sceAgcDcbContextStateOpGetSize(0xffffffffu); });
+    expectFailure([] { sceAgcDcbContextStateOp(nullptr, 0); });
+    expectFailure([] {
+        std::array<std::uint32_t, 64> words{};
+        CommandBuffer buffer{words.data(), words.data() + words.size(), words.data(), words.data() + words.size(), nullptr, nullptr, 0};
+        sceAgcDcbContextStateOp(&buffer, 4);
+    });
 }
 
 }
