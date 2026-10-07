@@ -6,6 +6,8 @@
 #include <stdexcept>
 
 extern "C" int APS5_VABI sceAgcGetIsTrinityMode(bool* isTrinityMode);
+extern "C" std::uint32_t APS5_VABI sceAgcGetShaderInstrumentation(void);
+extern "C" int APS5_VABI sceAgcSetShaderInstrumentation(std::uint32_t flags);
 
 namespace {
 
@@ -35,12 +37,21 @@ void testRejections() {
     expectFailure([] { sceAgcGetIsTrinityMode(nullptr); });
 }
 
+void testShaderInstrumentation() {
+    check(sceAgcGetShaderInstrumentation() == 0, "initial shader instrumentation was not 0");
+    check(sceAgcSetShaderInstrumentation(0x12345678u) == 0, "sceAgcSetShaderInstrumentation failed");
+    check(sceAgcGetShaderInstrumentation() == 0x12345678u, "sceAgcGetShaderInstrumentation did not return set flags");
+    check(sceAgcSetShaderInstrumentation(0) == 0, "resetting shader instrumentation failed");
+    check(sceAgcGetShaderInstrumentation() == 0, "shader instrumentation was not reset to 0");
+}
+
 }
 
 int main() {
     try {
         testTrinityMode();
         testRejections();
+        testShaderInstrumentation();
         LibcRunShutdown_nid_postfix();
         std::puts("AGC platform tests passed");
         return 0;
