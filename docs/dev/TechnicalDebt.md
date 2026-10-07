@@ -28,6 +28,7 @@ Throughout the project, every function at every stage either **does exactly what
 - [sceAvPlayerSetTrickSpeed](../../core/libs/prx/libSceAvPlayer/src/Source.cpp) (libSceAvPlayer) with a negative speed runs the clock backwards but delivers no frames; when a forward speed is set again, playback resumes from the rewound time.
 - [ulobjmgr](../../core/libs/prx/ulobjmgr/Export.cpp) registers no object: `_sceUlobjmgrRegisterObject` always hands out id 0 and `_sceUlobjmgrUnregisterObject` releases nothing, as shadPS4 does
 - [libSceHttp](../../core/libs/prx/libSceHttp/Export.cpp) - no request reaches the network, so `sceHttpSetResponseHeaderMaxSize` has no response header to limit and `sceHttpRedirectCacheFlush` no redirect to forget; `sceHttpsUnloadCert` returns success like `sceHttpsLoadCert`, which keeps no certificate
+- [sceAgcDriverSetSubmitValidationMode, sceAgcDriverGetSubmitValidationMode, sceAgcDriverSetSubmitValidationConfig, sceAgcDriverGetSubmitValidationConfig, sceAgcDriverSetValidationErrorOutputFrequency](../../core/libs/prx/libSceAgcDriver/State/src/Status.cpp) (libSceAgcDriver) - return `0x8A6C1000` (`SCE_AGC_DRIVER_ERROR_DEBUG_UNAVAILABLE`) unconditionally as in retail compatibility SPRX @ `0x7bb0-0x7bf0`; submit validation is a development-only GPU debugging feature and unavailable on retail firmware (`sceAgcDriverIsSubmitValidationEnabled` returns false)
 
 ### Unknown function info
 
