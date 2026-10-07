@@ -61,4 +61,5 @@ int main() {
     Check(0x44u, RdnaOpcode::ImageGather4L, 0x8u);
     Check(0x54u, RdnaOpcode::ImageGather4LO, 0x8u);
     Check(0x50u, RdnaOpcode::ImageGather4O, 0x8u);
+    Check(0x61u, RdnaOpcode::ImageGather4h, 0x8u);
 }
