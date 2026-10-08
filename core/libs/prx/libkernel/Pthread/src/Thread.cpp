@@ -4,6 +4,7 @@
 #include "prx/libkernel/KernelErrors.hpp"
 #include "prx/libc/include/CpuTopology.hpp"
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
@@ -286,9 +287,9 @@ int APS5_VABI scePthreadCreate(Pthread* thread, const PthreadAttr* attr, Pthread
         p->priority.store((*attr)->_schedpriority, std::memory_order_relaxed);
     }
     if (name) p->name = name;
-    std::promise<bool> start;
     auto args = std::make_unique<ThreadArgs>(ThreadArgs{entry, arg, p.get()});
 #ifdef _WIN32
+    std::promise<bool> start;
     SYSTEM_INFO system{};
     GetSystemInfo(&system);
     const std::size_t nativeStack = (p->stackSize + system.dwPageSize - 1) / system.dwPageSize * system.dwPageSize;
@@ -315,9 +316,15 @@ int APS5_VABI scePthreadCreate(Pthread* thread, const PthreadAttr* attr, Pthread
     if (detached)
         ReleaseThread(published);
 #else
+    auto startState = std::make_shared<std::atomic<int>>(0);
     auto* self = p.get();
-    p->_thr = std::thread([self, args = std::move(args), ready = start.get_future()]() mutable {
-        if (!ready.get()) return;
+    p->_thr = std::thread([self, args = std::move(args), startState]() mutable {
+        int state = startState->load(std::memory_order_acquire);
+        while (state == 0) {
+            startState->wait(0, std::memory_order_relaxed);
+            state = startState->load(std::memory_order_acquire);
+        }
+        if (state != 1) return;
         self->threadId = std::this_thread::get_id();
         struct ThreadGuard {
             PthreadPrivate* self;
@@ -336,13 +343,15 @@ int APS5_VABI scePthreadCreate(Pthread* thread, const PthreadAttr* attr, Pthread
     try {
         if (detached) p->_thr.detach();
     } catch (...) {
-        start.set_value(false);
+        startState->store(2, std::memory_order_release);
+        startState->notify_one();
         p->_thr.join();
         throw;
     }
     auto* published = p.release();
     *thread = published;
-    start.set_value(true);
+    startState->store(1, std::memory_order_release);
+    startState->notify_one();
     if (detached)
         ReleaseThread(published);
 #endif
