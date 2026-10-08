@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <random>
 #include <string>
 
 extern "C" {
@@ -51,11 +52,14 @@ static bool Exists(const char* name) {
 }
 
 int main() {
-    const std::filesystem::path dir = "guest_fiopen_dir";
+    const auto dirName = "guest_fiopen_dir-" + std::to_string(std::random_device{}());
+    const std::filesystem::path dir = dirName;
     std::filesystem::remove_all(dir);
     std::filesystem::create_directory(dir);
-    const char* file = "guest_fiopen_dir/a";
-    const char* missing = "guest_fiopen_dir/missing";
+    const auto filePath = (dir / "a").string();
+    const auto missingPath = (dir / "missing").string();
+    const char* file = filePath.c_str();
+    const char* missing = missingPath.c_str();
 
     for (int mode : {0, Ate, Trunc, Binary, Nocreate, Noreplace, In | Trunc, In | Trunc | Binary, Out | App | Trunc,
             In | Out | App | Trunc, Trunc | Binary, App | Trunc}) {

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <random>
 #ifdef _WIN32
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -34,40 +35,45 @@ static bool Recorded(const char* guest) {
     return std::find(paths.begin(), paths.end(), ResolvePath_nid_no_patch(guest).lexically_normal()) != paths.end();
 }
 int main() {
-    std::filesystem::remove_all("kernel_sync_probe");
-    Require(sceKernelMkdir("kernel_sync_probe", 0777) == 0);
-    Require(Recorded("kernel_sync_probe"));
-    std::ofstream("kernel_sync_probe/existing.bin") << "existing";
-    const int reader = sceKernelOpen("kernel_sync_probe/existing.bin", 0x0, 0);
+    const auto probe = "kernel_sync_probe-" + std::to_string(std::random_device{}());
+    const auto existing = probe + "/existing.bin";
+    const auto data = probe + "/data.bin";
+    const auto moved = probe + "/moved.bin";
+    const auto readOnly = probe + "/read_only.bin";
+    std::filesystem::remove_all(probe);
+    Require(sceKernelMkdir(probe.c_str(), 0777) == 0);
+    Require(Recorded(probe.c_str()));
+    std::ofstream(existing) << "existing";
+    const int reader = sceKernelOpen(existing.c_str(), 0x0, 0);
     Require(reader >= 0 && sceKernelClose(reader) == 0);
-    void* stream = fopen_nid_postfix("kernel_sync_probe/existing.bin", "r");
+    void* stream = fopen_nid_postfix(existing.c_str(), "r");
     Require(stream != nullptr && fclose_nid_postfix(stream) == 0);
-    Require(!Recorded("kernel_sync_probe/existing.bin"));
-    stream = fopen_nid_postfix("kernel_sync_probe/existing.bin", "a");
+    Require(!Recorded(existing.c_str()));
+    stream = fopen_nid_postfix(existing.c_str(), "a");
     Require(stream != nullptr && fclose_nid_postfix(stream) == 0);
-    Require(Recorded("kernel_sync_probe/existing.bin"));
-    const int writer = sceKernelOpen("kernel_sync_probe/data.bin", 0x1 | 0x200 | 0x400, 0644);
+    Require(Recorded(existing.c_str()));
+    const int writer = sceKernelOpen(data.c_str(), 0x1 | 0x200 | 0x400, 0644);
     Require(writer >= 0 && sceKernelWrite(writer, "data", 4) == 4 && sceKernelClose(writer) == 0);
-    Require(Recorded("kernel_sync_probe/data.bin"));
-    Require(sceKernelRename("kernel_sync_probe/data.bin", "kernel_sync_probe/moved.bin") == 0);
-    Require(Recorded("kernel_sync_probe/moved.bin"));
-    Require(sceKernelUnlink("kernel_sync_probe/moved.bin") == 0);
+    Require(Recorded(data.c_str()));
+    Require(sceKernelRename(data.c_str(), moved.c_str()) == 0);
+    Require(Recorded(moved.c_str()));
+    Require(sceKernelUnlink(moved.c_str()) == 0);
     sceKernelSync();
-    Require(!Recorded("kernel_sync_probe/data.bin") && !Recorded("kernel_sync_probe/moved.bin"));
+    Require(!Recorded(data.c_str()) && !Recorded(moved.c_str()));
     sceKernelSync();
-    const int locked = sceKernelOpen("kernel_sync_probe/read_only.bin", 0x1 | 0x200, 0644);
+    const int locked = sceKernelOpen(readOnly.c_str(), 0x1 | 0x200, 0644);
     Require(locked >= 0 && sceKernelWrite(locked, "data", 4) == 4 && sceKernelClose(locked) == 0);
-    Require(sceKernelChmod_nid_postfix("kernel_sync_probe/read_only.bin", 0444) == 0);
-    Require(Recorded("kernel_sync_probe/read_only.bin"));
+    Require(sceKernelChmod_nid_postfix(readOnly.c_str(), 0444) == 0);
+    Require(Recorded(readOnly.c_str()));
     sceKernelSync();
-    Require(sceKernelChmod_nid_postfix("kernel_sync_probe/read_only.bin", 0644) == 0);
+    Require(sceKernelChmod_nid_postfix(readOnly.c_str(), 0644) == 0);
 #ifdef _WIN32
-    const auto exclusive = CreateFileW(ResolvePath_nid_no_patch("kernel_sync_probe/read_only.bin").c_str(), GENERIC_READ, FILE_SHARE_READ,
+    const auto exclusive = CreateFileW(ResolvePath_nid_no_patch(readOnly.c_str()).c_str(), GENERIC_READ, FILE_SHARE_READ,
         nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     Require(exclusive != INVALID_HANDLE_VALUE);
     sceKernelSync();
     CloseHandle(exclusive);
 #endif
     sceKernelSync();
-    std::filesystem::remove_all("kernel_sync_probe");
+    std::filesystem::remove_all(probe);
 }
