@@ -22,6 +22,7 @@ constexpr std::uint32_t FormatR8G8B8A8Unorm = 56;
 constexpr std::uint32_t TileDepth64KB = 0x18;
 constexpr std::uint32_t TileRenderTarget64KB = 0x1b;
 constexpr std::uint32_t Type2D = 9;
+constexpr std::uint32_t TypeCube = 11;
 constexpr std::uint32_t Type2DArray = 13;
 
 std::uintptr_t nextHandle = 0x1000;
@@ -84,13 +85,36 @@ VKAPI_ATTR VkResult VKAPI_CALL getFenceStatus(VkDevice, VkFence) {
     return VK_SUCCESS;
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL createBuffer(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer* buffer) {
+    *buffer = newHandle<VkBuffer>();
+    return VK_SUCCESS;
+}
+
+VKAPI_ATTR void VKAPI_CALL bufferMemoryRequirements(VkDevice, VkBuffer, VkMemoryRequirements* requirements) {
+    *requirements = {65536, 65536, 1};
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL bindBufferMemory(VkDevice, VkBuffer, VkDeviceMemory, VkDeviceSize) {
+    return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL mapMemory(VkDevice, VkDeviceMemory, VkDeviceSize, VkDeviceSize, VkMemoryMapFlags, void** data) {
+    alignas(64) static std::array<std::uint8_t, 65536> buffer{};
+    *data = buffer.data();
+    return VK_SUCCESS;
+}
+VKAPI_ATTR void VKAPI_CALL unmapMemory(VkDevice, VkDeviceMemory) {}
+
 VKAPI_ATTR void VKAPI_CALL freeCommandBuffers(VkDevice, VkCommandPool, std::uint32_t, const VkCommandBuffer*) {}
 VKAPI_ATTR void VKAPI_CALL destroyFence(VkDevice, VkFence, const VkAllocationCallbacks*) {}
+VKAPI_ATTR void VKAPI_CALL destroyBuffer(VkDevice, VkBuffer, const VkAllocationCallbacks*) {}
 VKAPI_ATTR void VKAPI_CALL destroyImageView(VkDevice, VkImageView, const VkAllocationCallbacks*) {}
 VKAPI_ATTR void VKAPI_CALL destroyImage(VkDevice, VkImage, const VkAllocationCallbacks*) {}
 VKAPI_ATTR void VKAPI_CALL freeMemory(VkDevice, VkDeviceMemory, const VkAllocationCallbacks*) {}
 VKAPI_ATTR void VKAPI_CALL cmdPipelineBarrier(VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags, std::uint32_t, const VkMemoryBarrier*, std::uint32_t, const VkBufferMemoryBarrier*, std::uint32_t, const VkImageMemoryBarrier*) {}
 VKAPI_ATTR void VKAPI_CALL cmdClearDepthStencilImage(VkCommandBuffer, VkImage, VkImageLayout, const VkClearDepthStencilValue*, std::uint32_t, const VkImageSubresourceRange*) {}
+VKAPI_ATTR void VKAPI_CALL cmdCopyImageToBuffer(VkCommandBuffer, VkImage, VkImageLayout, VkBuffer, std::uint32_t, const VkBufferImageCopy*) {}
+VKAPI_ATTR void VKAPI_CALL cmdCopyBufferToImage(VkCommandBuffer, VkBuffer, VkImage, VkImageLayout, std::uint32_t, const VkBufferImageCopy*) {}
 
 VKAPI_ATTR void VKAPI_CALL formatProperties(VkPhysicalDevice, VkFormat, VkFormatProperties* properties) {
     *properties = {};
@@ -104,6 +128,12 @@ PFN_vkVoidFunction VKAPI_CALL deviceProc(VkDevice, const char* name) {
         {"vkAllocateMemory", reinterpret_cast<PFN_vkVoidFunction>(allocateMemory)},
         {"vkBindImageMemory", reinterpret_cast<PFN_vkVoidFunction>(bindImageMemory)},
         {"vkCreateImageView", reinterpret_cast<PFN_vkVoidFunction>(createImageView)},
+        {"vkCreateBuffer", reinterpret_cast<PFN_vkVoidFunction>(createBuffer)},
+        {"vkGetBufferMemoryRequirements", reinterpret_cast<PFN_vkVoidFunction>(bufferMemoryRequirements)},
+        {"vkBindBufferMemory", reinterpret_cast<PFN_vkVoidFunction>(bindBufferMemory)},
+        {"vkDestroyBuffer", reinterpret_cast<PFN_vkVoidFunction>(destroyBuffer)},
+        {"vkMapMemory", reinterpret_cast<PFN_vkVoidFunction>(mapMemory)},
+        {"vkUnmapMemory", reinterpret_cast<PFN_vkVoidFunction>(unmapMemory)},
         {"vkAllocateCommandBuffers", reinterpret_cast<PFN_vkVoidFunction>(allocateCommandBuffers)},
         {"vkCreateFence", reinterpret_cast<PFN_vkVoidFunction>(createFence)},
         {"vkBeginCommandBuffer", reinterpret_cast<PFN_vkVoidFunction>(beginCommandBuffer)},
@@ -117,7 +147,9 @@ PFN_vkVoidFunction VKAPI_CALL deviceProc(VkDevice, const char* name) {
         {"vkDestroyImage", reinterpret_cast<PFN_vkVoidFunction>(destroyImage)},
         {"vkFreeMemory", reinterpret_cast<PFN_vkVoidFunction>(freeMemory)},
         {"vkCmdPipelineBarrier", reinterpret_cast<PFN_vkVoidFunction>(cmdPipelineBarrier)},
-        {"vkCmdClearDepthStencilImage", reinterpret_cast<PFN_vkVoidFunction>(cmdClearDepthStencilImage)}
+        {"vkCmdClearDepthStencilImage", reinterpret_cast<PFN_vkVoidFunction>(cmdClearDepthStencilImage)},
+        {"vkCmdCopyImageToBuffer", reinterpret_cast<PFN_vkVoidFunction>(cmdCopyImageToBuffer)},
+        {"vkCmdCopyBufferToImage", reinterpret_cast<PFN_vkVoidFunction>(cmdCopyBufferToImage)}
     };
     const auto it = table.find(name);
     return it == table.end() ? nullptr : it->second;
@@ -185,6 +217,35 @@ void RunDepthSurfaceReuseTests() {
     Require(lookup(context, {stencil, FormatR8Uint, 320, 180}) != nullptr, "an 8-bit view of a stencil plane's own extent must sample the stencil plane");
     Require(lookup(context, {stencil, FormatR8G8B8A8Unorm, 320, 180, TileRenderTarget64KB}) == nullptr, "an RGBA8 view of a stencil plane's own extent must be read as reused memory");
     Require(lookup(context, {stencil, FormatR32Float, 320, 180}) == nullptr, "an R32F view of a stencil plane's own extent must be read as reused memory");
+
+    Require(DepthStencilPlaneAt(stencil), "the stencil address must be identified as a stencil plane");
+    Require(!DepthStencilPlaneAt(depthStencil), "the depth address must not be identified as a stencil plane");
+    Require(!DepthStencilPlaneAt(depth32), "a depth-only address must not be identified as a stencil plane");
+
+    const auto sliceBytes = DepthSliceBytes({384, 384}, 4u);
+    DepthSurfaceView(context, {depth32 + sliceBytes, 0, {384, 384}, VK_FORMAT_D32_SFLOAT, 1.0f, 0});
+    const auto arrayTexture = lookup(context, {depth32, FormatR32Float, 384, 384, TileDepth64KB, Type2DArray, 1});
+    Require(arrayTexture != nullptr, "a 2D array view over depth slices must produce a depth plane copy");
+    Require(arrayTexture->RefreshedPerUse(), "a 2D array depth plane copy must be marked RefreshedPerUse");
+
+    for (std::uint32_t face = 2; face < 6; ++face) {
+        DepthSurfaceView(context, {depth32 + static_cast<std::uint64_t>(face) * sliceBytes, 0, {384, 384}, VK_FORMAT_D32_SFLOAT, 1.0f, 0});
+    }
+    const auto cubeTexture = lookup(context, {depth32, FormatR32Float, 384, 384, TileDepth64KB, TypeCube, 5});
+    Require(cubeTexture != nullptr, "a cube view over depth slices must produce a depth plane copy");
+    Require(cubeTexture->RefreshedPerUse(), "a cube depth plane copy must be marked RefreshedPerUse");
+
+    bool cubeRefused = false;
+    try {
+        lookup(context, {depth32, FormatR32Float, 384, 384, TileDepth64KB, TypeCube, 3});
+    } catch (const std::runtime_error&) {
+        cubeRefused = true;
+    }
+    Require(cubeRefused, "sampling cube depth planes with fewer than 6 slices must throw");
+
+    const auto r16UintTexture = lookup(context, {depth16, FormatR16Uint, 256, 256, TileRenderTarget64KB, Type2D, 0});
+    Require(r16UintTexture != nullptr, "an R16_UINT view of a D16 surface must produce a depth plane copy");
+    Require(r16UintTexture->RefreshedPerUse(), "an R16_UINT depth plane copy must be marked RefreshedPerUse");
 
     ClearDepthSurfaces(context.device);
 }
