@@ -3890,6 +3890,13 @@ int main(int argc, char** argv) {
     *__error_nid_postfix() = 0;
     Require(mincore_nid_postfix(memory, page, nullptr) == -1 && *__error_nid_postfix() == 14);
     *__error_nid_postfix() = 0;
+    Require(mincore_nid_postfix(memory, page, reinterpret_cast<char*>(0x800000000000)) == -1 && *__error_nid_postfix() == 14);
+    *__error_nid_postfix() = 0;
+    auto* readOnlyVec = static_cast<char*>(mmap_nid_postfix(nullptr, page, 1, 0x1002, -1, 0));
+    Require(readOnlyVec != reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)));
+    Require(mincore_nid_postfix(memory, page, readOnlyVec) == -1 && *__error_nid_postfix() == 14);
+    *__error_nid_postfix() = 0;
+    Require(munmap_nid_postfix(readOnlyVec, page) == 0);
     Require(mincore_nid_postfix(reinterpret_cast<void*>(0x800000000000), page, nullptr) == -1 && *__error_nid_postfix() == 12);
     *__error_nid_postfix() = 0;
     Require(mincore_nid_postfix(reinterpret_cast<void*>(0x800000000000), page, mincoreVec) == -1 && *__error_nid_postfix() == 12);

@@ -10,6 +10,7 @@
 #include "prx/libkernel/File/include/SharedMemory.hpp"
 #include <algorithm>
 #include <limits>
+#include <vector>
 #include <cerrno>
 #include <new>
 #include <stdexcept>
@@ -361,14 +362,17 @@ int APS5_VABI mincore_nid_postfix(const void* address, std::size_t length, char*
     if (size == 0 ? !Mapped(first) : !GuestRangeMapped(first, end)) return failed(GuestNoMemory);
     if (size == 0) return 0;
     if (vec == nullptr) return failed(GuestFault);
+    const std::size_t pages = size / PS5_PAGE_SIZE;
+    std::vector<char> results(pages);
     for (auto cursor = first; cursor < end;) {
         VirtualQueryInfo info{};
         sceKernelVirtualQuery(reinterpret_cast<const void*>(cursor), 0, &info, sizeof(info));
 
         const auto extentEnd = std::min<std::uintptr_t>(info.end, end);
-        std::fill_n(vec + (cursor - first) / PS5_PAGE_SIZE, (extentEnd - cursor) / PS5_PAGE_SIZE, static_cast<char>(info.is_committed != 0 ? 1 : 0));
+        std::fill_n(results.data() + (cursor - first) / PS5_PAGE_SIZE, (extentEnd - cursor) / PS5_PAGE_SIZE, static_cast<char>(info.is_committed != 0 ? 1 : 0));
         cursor = extentEnd;
     }
+    if (!GuestCopyOut_nid_no_patch(vec, results.data(), pages)) return failed(GuestFault);
     return 0;
 }
 
