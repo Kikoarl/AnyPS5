@@ -26,7 +26,7 @@ enum class LogDirection { Silent, Console, File };
 
 enum class PresentMode { Fifo, Mailbox, Immediate };
 
-enum class PssrUpscaler { Linear, DLSS, FSR };
+enum class PssrUpscaler { Linear, DLSS, FSR, XESS };
 
 enum class PipelinePrecompile { Ask, Wait, Play };
 
@@ -82,6 +82,7 @@ struct ConfigOptions {
 	std::filesystem::path  dlss_folder;
 	uint32_t               dlss_preset                 = 0;
 	std::filesystem::path  fsr_folder;
+	std::filesystem::path  xess_folder;
 	bool                   amd_cpu_enabled             = false;
 	bool                   guest_tsc_enabled           = true;
 	bool                   network_connected           = false;
@@ -158,6 +159,7 @@ PssrUpscaler GetPssrUpscaler();
 const std::filesystem::path& GetDlssFolder();
 uint32_t GetDlssPreset();
 const std::filesystem::path& GetFsrFolder();
+const std::filesystem::path& GetXessFolder();
 bool     AmdCpuEnabled();
 bool     GuestTscEnabled();
 bool     IsNetworkConnected();

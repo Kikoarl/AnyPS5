@@ -170,10 +170,11 @@ AnyPS5 opens the window, so Kyty's window options do nothing; `ANYPS5_FULLSCREEN
 | `KYTY_PRESENT_MODE` | `Fifo`, `Mailbox`, `Immediate`, any case, else stops | `Mailbox` | Vulkan present mode of the swapchain; `ANYPS5_PRESENT_MODE` is not read with this backend | option | all | Kyty option |
 | `KYTY_GPU` | whole number, else stops | `-1` | Index of the Vulkan physical device; `-1`, or an index with no device (the log says so), lets Kyty choose; `ANYPS5_GPU` is not read with this backend | option | all | Kyty option |
 | `KYTY_VBLANK_FREQUENCY` | whole number, clamped to 30 to 360, else stops | unset | Vblank rate when `ANYPS5_VBLANK_HZ` is unset or empty; it also becomes Kyty's own vblank frequency. Unset keeps the output's 59.94 Hz and 119.88 Hz | option | all | Kyty option; `bffccd0fbf` |
-| `KYTY_PSSR_UPSCALER` | `Linear`, `DLSS`, `FSR`, any case, else stops | `Linear` | Upscaler of the PSSR path; `DLSS` and `FSR` load the vendor's library from the folder below through `SDL_LoadObject` | option | all | Kyty option |
-| `KYTY_TRINITY` | `0` or `1`, else stops | `0` | Kyty's PS5 Pro mode (`pro_enabled`), which only the DLSS and FSR upscalers read | option | all | Kyty option |
+| `KYTY_PSSR_UPSCALER` | `Linear`, `DLSS`, `FSR`, `XESS`, any case, else stops | `Linear` | Upscaler of the PSSR path; `DLSS`, `FSR` and `XESS` load the vendor's library from the folder below through `SDL_LoadObject` | option | all | Kyty option |
+| `KYTY_TRINITY` | `0` or `1`, else stops | `0` | Kyty's PS5 Pro mode (`pro_enabled`), which only the DLSS, FSR and XeSS upscalers read | option | all | Kyty option |
 | `KYTY_DLSS_FOLDER` | path | empty | Folder that holds the DLSS library | option | all | Kyty option |
 | `KYTY_FSR_FOLDER` | path | empty | Folder that holds the FSR library | option | all | Kyty option |
+| `KYTY_XESS_FOLDER` | path | empty | Folder that holds the XeSS library | option | all | Kyty option |
 | `KYTY_DLSS_PRESET` | `A` to `O`, else stops | unset | DLSS preset letter, 1 to 15 inside Kyty; unset keeps its 0 | option | all | Kyty option |
 
 ### GPU threads and queues

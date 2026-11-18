@@ -8,6 +8,7 @@
 #include "graphics/host_gpu/renderer/render.h"
 #include "graphics/host_gpu/renderer/renderContext.h"
 #include "graphics/host_gpu/renderer/upscaler/fsr.h"
+#include "graphics/host_gpu/renderer/upscaler/xess.h"
 #include "graphics/shader/shaderBindings.h"
 
 #include <algorithm>
@@ -341,9 +342,13 @@ void RenderExecutor::ProcessPssr(CommandBuffer& buffer, const Pssr::Request& req
 		                     resource(*dlss_bindings[1], false),
 		                     dlss_bindings[2] ? &exposure : nullptr, resource(output, true)};
 		const bool   readable =
-		    !Fsr::Enabled() || (Fsr::Reads(request, inputs) && raw(input, 3) &&
-		                        raw(*dlss_bindings[0], 1) && raw(*dlss_bindings[1], 2) &&
-		                        (!dlss_bindings[2] || raw(*dlss_bindings[2], 1)) && raw(output, 3));
+		    (!Fsr::Enabled() && !Xess::Enabled()) ||
+		    (Fsr::Enabled() && Fsr::Reads(request, inputs) && raw(input, 3) &&
+		     raw(*dlss_bindings[0], 1) && raw(*dlss_bindings[1], 2) &&
+		     (!dlss_bindings[2] || raw(*dlss_bindings[2], 1)) && raw(output, 3)) ||
+		    (Xess::Enabled() && Xess::Reads(request, inputs) && raw(input, 3) &&
+		     raw(*dlss_bindings[0], 1) && raw(*dlss_bindings[1], 2) &&
+		     (!dlss_bindings[2] || raw(*dlss_bindings[2], 1)) && raw(output, 3));
 		bool reset = false;
 		if (auto* feature = readable ? UpscalerFeatureFor(request, inputs, reset) : nullptr;
 		    feature != nullptr) {

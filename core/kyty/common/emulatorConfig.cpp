@@ -142,6 +142,10 @@ const std::filesystem::path& GetFsrFolder() {
 	return g_config->fsr_folder;
 }
 
+const std::filesystem::path& GetXessFolder() {
+	return g_config->xess_folder;
+}
+
 bool AmdCpuEnabled() {
 	return g_config->amd_cpu_enabled;
 }

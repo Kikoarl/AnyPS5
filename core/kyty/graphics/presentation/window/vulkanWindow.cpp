@@ -14,6 +14,7 @@
 #endif
 #include "graphics/host_gpu/renderer/upscaler/dlss.h"
 #include "graphics/host_gpu/renderer/upscaler/fsr.h"
+#include "graphics/host_gpu/renderer/upscaler/xess.h"
 #include "graphics/host_gpu/vulkanCommon.h"
 #include "graphics/presentation/openxrHeadset.h"
 #include "graphics/presentation/presenter.h"
@@ -984,6 +985,7 @@ void WindowContext::CreateVulkan() {
 	Vr::OpenXrInit();
 	Dlss::Load();
 	Fsr::Load();
+	Xess::Load();
 
 	VulkanExtensions r;
 #if defined(ANYPS5_KYTY)
@@ -1102,6 +1104,7 @@ void WindowContext::CreateVulkan() {
 	Dlss::Init(graphic_ctx, VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr,
 	           VULKAN_HPP_DEFAULT_DISPATCHER.vkGetDeviceProcAddr);
 	Fsr::Init(graphic_ctx, VULKAN_HPP_DEFAULT_DISPATCHER.vkGetDeviceProcAddr);
+	Xess::Init(graphic_ctx);
 
 	if (!graphic_ctx.CreateAllocator()) {
 		EXIT("Could not create Vulkan memory allocator");
@@ -1252,6 +1255,7 @@ WindowContext::~WindowContext() {
 	render_context.reset();
 	Dlss::Shutdown();
 	Fsr::Shutdown();
+	Xess::Shutdown();
 
 	if (graphic_ctx.device != nullptr) {
 		RequireVulkanSuccess(graphic_ctx.device.waitIdle(), "wait for Vulkan device shutdown");

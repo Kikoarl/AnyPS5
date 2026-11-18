@@ -81,6 +81,7 @@ struct Path {
 constexpr Path Paths[] = {
     {"KYTY_DLSS_FOLDER", &Options::dlss_folder},
     {"KYTY_FSR_FOLDER", &Options::fsr_folder},
+    {"KYTY_XESS_FOLDER", &Options::xess_folder},
     {"KYTY_SHADER_LOG_FOLDER", &Options::shader_log_folder},
     {"KYTY_COMMAND_BUFFER_DUMP_FOLDER", &Options::command_buffer_dump_folder},
     {"KYTY_PRINTF_OUTPUT_FILE", &Options::printf_output_file},
